@@ -1,12 +1,15 @@
 package com.pillarglobal.internship.sitemapmapper.controllers;
 
+//import com.pillarglobal.internship.sitemapmapper.services.MapperService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.pillarglobal.internship.sitemapmapper.clients.SitemapClient;
 import com.pillarglobal.internship.sitemapmapper.services.MapperService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
 
 
 @Controller
@@ -17,7 +20,13 @@ public class MapperController {
 
     @PostMapping()
     public ResponseEntity<String> addArticle(){
-        mapperService.schedule();
-        return new ResponseEntity<>("scheduled", HttpStatus.OK);
+        try {
+            mapperService.schedule();
+            return new ResponseEntity<>("scheduled", HttpStatus.OK);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("NOT sched", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 }
