@@ -6,7 +6,7 @@ import com.pillarglobal.internship.sitemapmapper.clients.SitemapClient;
 import com.pillarglobal.internship.sitemapmapper.models.ProcessedSitemap;
 import com.pillarglobal.internship.sitemapmapper.models.SitemapItem;
 import com.pillarglobal.internship.sitemapmapper.models.db.Sitemap;
-import com.pillarglobal.internship.sitemapmapper.repository.MapperRepository;
+import com.pillarglobal.internship.sitemapmapper.repository.SitemapsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +21,12 @@ import java.util.regex.Pattern;
 @Service
 public class MapperService {
     private SitemapClient sitemapClient;
-    private MapperRepository mapperRepository;
+    private SitemapsRepository sitemapsRepository;
     private Logger logger = LoggerFactory.getLogger(MapperService.class);
 
     @Autowired
-    public MapperService(MapperRepository mapperRepository, SitemapClient sitemapClient) {
-        this.mapperRepository = mapperRepository;
+    public MapperService(SitemapsRepository sitemapsRepository, SitemapClient sitemapClient) {
+        this.sitemapsRepository = sitemapsRepository;
         this.sitemapClient = sitemapClient;
     }
 
@@ -43,13 +43,13 @@ public class MapperService {
 
 
     private void updateDb(List<SitemapItem> list){
-        mapperRepository.deleteAll();
+        sitemapsRepository.deleteAll();
         list.forEach(x -> {
             String channel = extractChannel(x);
             Sitemap a = new Sitemap();
             a.setLoc(x.getLoc());
             a.setChannel(channel);
-            mapperRepository.save(a);
+            sitemapsRepository.save(a);
         });
     }
 
