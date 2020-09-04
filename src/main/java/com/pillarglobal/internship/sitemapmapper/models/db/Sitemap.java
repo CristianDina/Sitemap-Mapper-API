@@ -10,7 +10,7 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "terrasitemap", schema = "terrasitemap")
+@Table(name = "sitemaps", schema = "terrasitemap")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Sitemap {

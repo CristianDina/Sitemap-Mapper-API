@@ -33,7 +33,7 @@ public class MapperService {
     @Value("${sitemap.channels}")
     List<String> channels;
 
-    @Scheduled(fixedDelay = 15000)
+    @Scheduled(fixedDelay = 3600000)
     public void schedule() throws JsonProcessingException {
         XmlMapper xmlMapper = new XmlMapper();
         ProcessedSitemap processedSitemap =xmlMapper.readValue(sitemapClient.getChannels(), ProcessedSitemap.class);
