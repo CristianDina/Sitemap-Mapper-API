@@ -18,8 +18,8 @@ public class MapperController {
     @Autowired
     private MapperService mapperService;
 
-    @PostMapping()
-    public ResponseEntity<String> addArticle(){
+    @PostMapping("/triggerMapping")
+    public ResponseEntity<String> triggerSitemapMapping(){
         try {
             mapperService.schedule();
             return new ResponseEntity<>("scheduled", HttpStatus.OK);
