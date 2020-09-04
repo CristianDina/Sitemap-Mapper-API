@@ -6,10 +6,10 @@ resource "aws_db_instance" "rds" {
   storage_type = "gp2"
   allocated_storage = 20
   publicly_accessible = "true"
-  name = "terrards"
+  name = "terrasitemap"
   username = "admin"
   password = "anadoraletca"
   apply_immediately = "true"
-  identifier = "terrards"
+  identifier = "terrasitemap"
   skip_final_snapshot  = true
 }
