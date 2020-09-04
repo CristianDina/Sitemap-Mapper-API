@@ -16,5 +16,6 @@ import java.util.Date;
 public class Sitemap {
     @Id
     private String loc;
+
     private String channel;
 }
