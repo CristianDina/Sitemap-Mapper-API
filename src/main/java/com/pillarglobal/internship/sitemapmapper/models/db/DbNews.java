@@ -4,22 +4,25 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 
 @Data
 @Entity
-@Table(name = "articles", schema = "terrasitemap")
+@Table(name = "news", schema = "terrasitemap")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Article {
+public class DbNews {
     @Id
     private String loc;
     private String channel;
     private Date lastmod;
     private String changefreq;
     private Float priority;
+    private String newsName;
+    private String newsLanguage;
+    private Date newsPublication_date;
+    private String newsTitle;
+    private String newsKeywords;
 }

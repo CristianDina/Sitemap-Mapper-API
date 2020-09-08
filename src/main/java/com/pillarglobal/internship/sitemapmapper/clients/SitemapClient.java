@@ -12,10 +12,9 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class SitemapClient {
     private RestTemplate rest=new RestTemplate();
-    private String server = "https://www.telegraph.co.uk/sitemap.xml";
     private HttpStatus status;
 
-    public String getChannels(){
+    public String getContent(String server){
         HttpEntity<String> requestEntity = new HttpEntity<String>("");
         ResponseEntity<String> responseEntity = rest.exchange(server, HttpMethod.GET, requestEntity, String.class);
         this.setStatus(responseEntity.getStatusCode());
