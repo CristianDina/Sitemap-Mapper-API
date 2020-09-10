@@ -69,25 +69,25 @@ public class MapperController {
     }
 
 
-    @DeleteMapping("/delete")
-    @ResponseBody
-    public ResponseEntity<String> deleteArticle(@RequestBody DeleteBody deleteBody){
-        boolean deletedFromNews = false;
-        boolean deletedFromArticles = false;
-        String articleId = deleteBody.getArticleId();
-
-        if(mapperService.getNews(articleId).isPresent()) {
-            mapperService.deleteNews(articleId);
-            deletedFromNews = true;
-        }
-        if(mapperService.getArticle(articleId).isPresent()) {
-            mapperService.deleteArticle(articleId);
-            deletedFromArticles = true;
-        }
-        if(deletedFromArticles || deletedFromNews){
-            return new ResponseEntity<>(format("Article with id %s was deleted.",articleId), HttpStatus.OK);
-        }
-        else
-            return new ResponseEntity<>(format("Article with id %s not found", articleId), HttpStatus.NOT_FOUND);
-    }
+//    @DeleteMapping("/delete")
+//    @ResponseBody
+//    public ResponseEntity<String> deleteArticle(@RequestBody DeleteBody deleteBody){
+//        boolean deletedFromNews = false;
+//        boolean deletedFromArticles = false;
+//        String articleId = deleteBody.getArticleId();
+//
+//        if(mapperService.getNews(articleId).isPresent()) {
+//            mapperService.deleteNews(articleId);
+//            deletedFromNews = true;
+//        }
+//        if(mapperService.getArticle(articleId).isPresent()) {
+//            mapperService.deleteArticle(articleId);
+//            deletedFromArticles = true;
+//        }
+//        if(deletedFromArticles || deletedFromNews){
+//            return new ResponseEntity<>(format("Article with id %s was deleted.",articleId), HttpStatus.OK);
+//        }
+//        else
+//            return new ResponseEntity<>(format("Article with id %s not found", articleId), HttpStatus.NOT_FOUND);
+//    }
 }
