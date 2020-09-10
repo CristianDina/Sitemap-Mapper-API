@@ -24,5 +24,6 @@ public class DbNews {
     private String newsLanguage;
     private Date newsPublication_date;
     private String newsTitle;
+    @Column(columnDefinition = "text")
     private String newsKeywords;
 }

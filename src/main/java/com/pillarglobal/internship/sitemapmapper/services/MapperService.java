@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -28,19 +29,21 @@ import java.util.stream.Stream;
 
 import  java.text.SimpleDateFormat;
 
+@Transactional
 @Service
 public class MapperService {
     private SitemapClient sitemapClient;
     private SitemapsRepository sitemapsRepository;
     private ArticlesRepository articlesRepository;
     private NewsRepository newsRepository;
-
     private Logger logger = LoggerFactory.getLogger(MapperService.class);
-
     private XmlMapper xmlMapper = new XmlMapper();
+    private volatile boolean isNewsRouteStarted=false;
+    private volatile boolean isChannelMappingStarted=false;
+    private volatile boolean isCleanupStarted=false;
 
     @Autowired
-    public MapperService(SitemapsRepository sitemapsRepository, SitemapClient sitemapClient, ArticlesRepository articlesRepository, NewsRepository newsRepository) {
+    public MapperService( SitemapsRepository sitemapsRepository, SitemapClient sitemapClient, ArticlesRepository articlesRepository, NewsRepository newsRepository) {
         this.sitemapsRepository = sitemapsRepository;
         this.sitemapClient = sitemapClient;
         this.articlesRepository = articlesRepository;
@@ -50,23 +53,56 @@ public class MapperService {
     @Value("${sitemap.channels}")
     List<String> channels;
 
+
+
     @Scheduled(fixedDelay = 3600000)
-    public void schedule() throws JsonProcessingException {
-        logger.info("Read-Sitemap started");
-        ProcessedSitemap processedSitemap = readSitemap();
-        logger.info("Update-Sitemap-DB started");
-        updateDbSitemap(processedSitemap.getSitemapList());
-        logger.info("Read-Channels started");
-        ProcessedSitemap weeksAllChannels = processSitemap(processedSitemap);
-        logger.info("Read-Articles started");
-        ArticleList articleList = extractArticlesFromChannels(weeksAllChannels);
-        logger.info("Update-Articles-DB started");
-        updateDbArticles(articleList.getArticleList());
-        logger.info("Read-News started");
-        UrlSet news = readSitemapNews();
-        logger.info("Update-News-DB started");
-        updateDbNews(news.getUrlList());
-        logger.info("update complete");
+    public void startChannelMapping() throws JsonProcessingException {
+        if(!isChannelMappingStarted){
+            isChannelMappingStarted=true;
+            logger.info("Read-Sitemap started");
+            ProcessedSitemap processedSitemap = readSitemap();
+            logger.info("Update-Sitemap-DB started");
+            updateDbSitemap(processedSitemap.getSitemapList());
+            logger.info("Read-Channels started");
+            ProcessedSitemap weeksAllChannels = processSitemap(processedSitemap);
+            logger.info("Read-Articles started");
+            ArticleList articleList = extractArticlesFromChannels(weeksAllChannels);
+            logger.info("Update-Articles-DB started");
+            updateDbArticles(articleList.getArticleList());
+            logger.info("Sitemap-Mapping finished");
+            isChannelMappingStarted=false;
+        }else{
+            logger.info("Sitemap Mapping already in progress.");
+        }
+    }
+
+    @Scheduled(fixedDelay = 3600000)
+    public void startNewsMapping() throws JsonProcessingException{
+        if(!isNewsRouteStarted){
+            isNewsRouteStarted=true;
+            logger.info("Read-News started");
+            UrlSet news = xmlMapper.readValue(sitemapClient.getContent("https://www.telegraph.co.uk/sitemap-news.xml"), UrlSet.class);
+            logger.info("Update-News-DB started");
+            updateDbNews(news.getUrlList());
+            logger.info("Update-News-DB finished");
+            isNewsRouteStarted=false;
+        }else{
+            logger.info("News Mapping already in progress.");
+        }
+    }
+
+    @Scheduled(fixedDelay = 3600000)
+    public void startNewsCleanup(){
+        if(!isCleanupStarted){
+            isCleanupStarted=true;
+            logger.info("News Cleanup Started");
+            this.newsRepository.deleteOlderNews();
+            logger.info("News Cleanup Finished");
+            isCleanupStarted=false;
+        }else{
+            logger.info("News Cleanup already in progress.");
+        }
+
     }
 
     private ProcessedSitemap readSitemap() throws JsonProcessingException{
@@ -100,14 +136,10 @@ public class MapperService {
         return articleList;
     }
 
-    private UrlSet readSitemapNews() throws JsonProcessingException{
-        return this.xmlMapper.readValue(sitemapClient.getContent("https://www.telegraph.co.uk/sitemap-news.xml"), UrlSet.class);
-    }
-
-    private void updateDbSitemap(List<SitemapItem> channels){
-        logger.info("Sitemap repo delete started");
-        sitemapsRepository.deleteAll();
-        logger.info("Sitemap repo delete finished");
+    protected void updateDbSitemap(List<SitemapItem> channels){
+//        logger.info("Sitemap repo delete started");
+//        sitemapsRepository.deleteAll();
+//        logger.info("Sitemap repo delete finished");
         List<Sitemap> sitemapsDb = new ArrayList<>();
         channels.forEach(x -> {
             String channel = extractChannel(x.getLoc());
@@ -119,10 +151,10 @@ public class MapperService {
         sitemapsRepository.saveAll(sitemapsDb);
     }
 
-    private void updateDbArticles(List<Article> articles){
-        logger.info("Articles repo delete started");
-        articlesRepository.deleteAll();
-        logger.info("Articles repo delete finished");
+    protected void updateDbArticles(List<Article> articles){
+//        logger.info("Articles repo delete started");
+//        articlesRepository.deleteAll();
+//        logger.info("Articles repo delete finished");
         List<DbArticle> articlesDb = new ArrayList<>();
         articles.forEach(x -> {
             String channel = extractChannel(x.getLoc());
@@ -145,10 +177,7 @@ public class MapperService {
         articlesRepository.saveAll(articlesDb);
     }
 
-    private void updateDbNews(List<Url> urls){
-        logger.info("Newsrepo delete started");
-        this.newsRepository.deleteAll();
-        logger.info("Newsrepo delete finished");
+    protected void updateDbNews(List<Url> urls){
         List<DbNews> newsDb = new ArrayList<>();
         urls.forEach(u -> {
             String channel = extractChannel(u.getLoc());
@@ -188,4 +217,20 @@ public class MapperService {
         return "N/A";
     }
 
+    public Optional<DbArticle> getArticle(String articleId) {
+        return this.articlesRepository.findById(articleId);
+    }
+
+    public void deleteArticle(String articleId) {
+        this.articlesRepository.deleteById(articleId);
+
+    }
+
+    public Optional<DbNews> getNews(String articleId) {
+        return this.newsRepository.findById(articleId);
+    }
+
+    public void deleteNews(String articleId) {
+        this.newsRepository.deleteById(articleId);
+    }
 }
