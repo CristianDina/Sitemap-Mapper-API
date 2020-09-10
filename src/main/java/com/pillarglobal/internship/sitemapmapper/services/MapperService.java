@@ -38,20 +38,21 @@ public class MapperService {
     private ArticlesRepository articlesRepository;
     private NewsRepository newsRepository;
     private Logger logger = LoggerFactory.getLogger(MapperService.class);
-    private XmlMapper xmlMapper;
+    private XmlMapper xmlMapper=new XmlMapper();
     private volatile boolean isNewsRouteStarted=false;
     private volatile boolean isChannelMappingStarted=false;
     private volatile boolean isCleanupStarted=false;
 
-
+    public void setXmlMapper(XmlMapper xmlMapper) {
+        this.xmlMapper = xmlMapper;
+    }
 
     @Autowired
-    public MapperService( SitemapsRepository sitemapsRepository, SitemapClient sitemapClient, ArticlesRepository articlesRepository, NewsRepository newsRepository, XmlMapper xmlMapper) {
+    public MapperService( SitemapsRepository sitemapsRepository, SitemapClient sitemapClient, ArticlesRepository articlesRepository, NewsRepository newsRepository) {
         this.sitemapsRepository = sitemapsRepository;
         this.sitemapClient = sitemapClient;
         this.articlesRepository = articlesRepository;
         this.newsRepository = newsRepository;
-        this.xmlMapper = xmlMapper;
     }
 
     @Value("${sitemap.channels}")

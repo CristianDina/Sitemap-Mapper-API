@@ -22,10 +22,11 @@ public class MapperServiceTest {
     NewsRepository newsRepository=Mockito.mock(NewsRepository.class);
     SitemapClient sitemapClient=Mockito.mock(SitemapClient.class);
     XmlMapper xmlMapper=Mockito.mock(XmlMapper.class);
-    MapperService mapperService = new MapperService(sitemapsRepository,sitemapClient,articlesRepository,newsRepository,xmlMapper);
+    MapperService mapperService = new MapperService(sitemapsRepository,sitemapClient,articlesRepository,newsRepository);
 
     @Test
     public void startChannelMapping_happyPath() throws JsonProcessingException {
+        mapperService.setXmlMapper(xmlMapper);
         ProcessedSitemap processedSitemap=new ProcessedSitemap();
         processedSitemap.setSitemapList(new ArrayList<>());
         ArticleList articleList=new ArticleList();
@@ -46,6 +47,8 @@ public class MapperServiceTest {
 
     @Test
     public void startNewsMapping_happyPath() throws JsonProcessingException {
+        mapperService.setXmlMapper(xmlMapper);
+
         UrlSet urlSet=new UrlSet();
         urlSet.setUrlList(new ArrayList<>());
 
@@ -61,6 +64,8 @@ public class MapperServiceTest {
 
     @Test
     public void startNewsClear_happyPath() throws JsonProcessingException {
+        mapperService.setXmlMapper(xmlMapper);
+
         Mockito.when(newsRepository.saveAll(any())).thenReturn(new ArrayList<>());
 
         mapperService.startNewsCleanup();

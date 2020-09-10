@@ -8,15 +8,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @EnableScheduling
 @SpringBootApplication
-public class SitemapMapperApplication {
+public class SitemapMapperApplication  {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SitemapMapperApplication.class, args);
-	}
-
-	@Bean
-	public XmlMapper getXmlMapper(){
-		return new XmlMapper();
 	}
 
 	@Bean
