@@ -68,10 +68,10 @@ public class MapperController {
         return new ResponseEntity<>("News Cleanup mapping scheduled.", HttpStatus.OK);
     }
 
-    @PostMapping("/testendpoint")
-    public ResponseEntity<String> testendpoint(){
-        return new ResponseEntity<>("ok.", HttpStatus.OK);
-    }
+//    @PostMapping("/testendpoint")
+//    public ResponseEntity<String> testendpoint(){
+//        return new ResponseEntity<>("ok.", HttpStatus.OK);
+//    }
 
 
     @DeleteMapping("/delete")
