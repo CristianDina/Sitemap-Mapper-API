@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ import java.util.stream.Stream;
 
 import  java.text.SimpleDateFormat;
 
-@Transactional
+//@Transactional
 @Service
 public class MapperService {
     private SitemapClient sitemapClient;
@@ -37,17 +38,20 @@ public class MapperService {
     private ArticlesRepository articlesRepository;
     private NewsRepository newsRepository;
     private Logger logger = LoggerFactory.getLogger(MapperService.class);
-    private XmlMapper xmlMapper = new XmlMapper();
+    private XmlMapper xmlMapper;
     private volatile boolean isNewsRouteStarted=false;
     private volatile boolean isChannelMappingStarted=false;
     private volatile boolean isCleanupStarted=false;
 
+
+
     @Autowired
-    public MapperService( SitemapsRepository sitemapsRepository, SitemapClient sitemapClient, ArticlesRepository articlesRepository, NewsRepository newsRepository) {
+    public MapperService( SitemapsRepository sitemapsRepository, SitemapClient sitemapClient, ArticlesRepository articlesRepository, NewsRepository newsRepository, XmlMapper xmlMapper) {
         this.sitemapsRepository = sitemapsRepository;
         this.sitemapClient = sitemapClient;
         this.articlesRepository = articlesRepository;
         this.newsRepository = newsRepository;
+        this.xmlMapper = xmlMapper;
     }
 
     @Value("${sitemap.channels}")
@@ -111,12 +115,13 @@ public class MapperService {
 
     private ProcessedSitemap processSitemap(ProcessedSitemap processedSitemap) throws JsonProcessingException{
         ProcessedSitemap weeksAllChannels = new ProcessedSitemap();
+        weeksAllChannels.setSitemapList(new ArrayList<>());
         for(SitemapItem s: processedSitemap.getSitemapList()){
             if(channels.contains(extractChannel(s.getLoc())))
             {
                 List<SitemapItem> oldList = weeksAllChannels.getSitemapList();
                 weeksAllChannels = this.xmlMapper.readValue(sitemapClient.getContent(s.getLoc()),ProcessedSitemap.class);
-                if(oldList!=null)
+                if(!oldList.isEmpty())
                     weeksAllChannels.setSitemapList(Stream.concat(oldList.stream(),weeksAllChannels.getSitemapList().stream())
                             .collect(Collectors.toList()));
             }
@@ -126,20 +131,18 @@ public class MapperService {
 
     private ArticleList extractArticlesFromChannels(ProcessedSitemap weeksAllChannels) throws JsonProcessingException{
         ArticleList articleList = new ArticleList();
+        articleList.setArticleList(new ArrayList<>());
         for(SitemapItem s:weeksAllChannels.getSitemapList()){
             List<Article> oldList = articleList.getArticleList();
             articleList = this.xmlMapper.readValue(sitemapClient.getContent(s.getLoc()),ArticleList.class);
-            if(oldList!=null)
+            if(!oldList.isEmpty())
                 articleList.setArticleList(Stream.concat(oldList.stream(),articleList.getArticleList().stream())
                         .collect(Collectors.toList()));
         }
         return articleList;
     }
 
-    protected void updateDbSitemap(List<SitemapItem> channels){
-//        logger.info("Sitemap repo delete started");
-//        sitemapsRepository.deleteAll();
-//        logger.info("Sitemap repo delete finished");
+    private void updateDbSitemap(List<SitemapItem> channels){
         List<Sitemap> sitemapsDb = new ArrayList<>();
         channels.forEach(x -> {
             String channel = extractChannel(x.getLoc());
@@ -151,10 +154,7 @@ public class MapperService {
         sitemapsRepository.saveAll(sitemapsDb);
     }
 
-    protected void updateDbArticles(List<Article> articles){
-//        logger.info("Articles repo delete started");
-//        articlesRepository.deleteAll();
-//        logger.info("Articles repo delete finished");
+    private void updateDbArticles(List<Article> articles){
         List<DbArticle> articlesDb = new ArrayList<>();
         articles.forEach(x -> {
             String channel = extractChannel(x.getLoc());
@@ -177,7 +177,7 @@ public class MapperService {
         articlesRepository.saveAll(articlesDb);
     }
 
-    protected void updateDbNews(List<Url> urls){
+    private void updateDbNews(List<Url> urls){
         List<DbNews> newsDb = new ArrayList<>();
         urls.forEach(u -> {
             String channel = extractChannel(u.getLoc());
