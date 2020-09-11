@@ -73,6 +73,11 @@ public class MapperController {
         return new ResponseEntity<>("ok.", HttpStatus.OK);
     }
 
+    @PostMapping("/testendpoin3t")
+    public ResponseEntity<String> testen3dpoint(){
+        return new ResponseEntity<>("ok.", HttpStatus.OK);
+    }
+
 
     @DeleteMapping("/delete")
     @ResponseBody
